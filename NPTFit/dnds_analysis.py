@@ -76,10 +76,9 @@ class Analysis:
         # rescaling of the counts, which is why to get the
         # intensity this is multiplied by the total counts
         self.intensity_array_non_poiss = \
-            list(map(lambda sample:
-                     np.sum(self.template_sum *
+            list([np.sum(self.template_sum *
                             self.dnds(comp, sample, self.sarray) *
-                            self.sarray*self.ds), self.nptf.samples))
+                            self.sarray*self.ds) for sample in self.nptf.samples])
 
         return self.intensity_array_non_poiss
 
@@ -105,9 +104,8 @@ class Analysis:
         # Get PT intensities by scaling the compressed mask intensity
         # by the relevant normalizations from chains
         self.intensity_array_poiss = \
-            list(map(lambda sample: self.template_sum *
-                     self.return_poiss_samples(comp, sample),
-                     self.nptf.samples))
+            list([self.template_sum *
+                     self.return_poiss_samples(comp, sample) for sample in self.nptf.samples])
 
         return self.intensity_array_poiss
 
@@ -344,7 +342,7 @@ class Analysis:
         # the multiplicative factor times the previous break
         if self.nptf.non_poiss_models[comp]['dnds_model'] \
                 == 'specify_relative_breaks':
-            for i in reversed(range(len(sb_ary) - 1)):
+            for i in reversed(list(range(len(sb_ary) - 1))):
                 sb_ary[i] = sb_ary[i+1]*sb_ary[i]
 
         # Determine where the s values fall with respect to the breaks

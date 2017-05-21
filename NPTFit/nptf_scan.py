@@ -13,8 +13,8 @@
 #
 ###############################################################################
 
-from __future__ import print_function
-from __future__ import absolute_import
+
+
 
 import copy
 import numpy as np
@@ -138,10 +138,10 @@ class NPTFScan(ConfigMaps):
         # Configure the non-poissonian priors
         self.theta_min_non_poiss = self.flatten(
             [np.array(val['prior_range'])[::, 0]
-             for val in self.non_poiss_models.values()])
+             for val in list(self.non_poiss_models.values())])
         self.theta_max_non_poiss = self.flatten(
             [np.array(val['prior_range'])[::, 1]
-             for val in self.non_poiss_models.values()])
+             for val in list(self.non_poiss_models.values())])
 
         # Setup the theta min and max arrays
         self.theta_min = self.theta_min_poiss + self.theta_min_non_poiss
@@ -170,12 +170,12 @@ class NPTFScan(ConfigMaps):
         self.compress_data_and_templates()
 
         # Setup keys and number of parameters for the scan
-        self.poiss_model_keys = self.poiss_models.keys()
-        self.n_poiss = len(self.poiss_models.keys())
+        self.poiss_model_keys = list(self.poiss_models.keys())
+        self.n_poiss = len(list(self.poiss_models.keys()))
         self.n_non_poiss = np.sum([val['n_params'] for val in
-                                   self.non_poiss_models.values()])
-        self.n_non_poiss_models = len(self.non_poiss_models.keys())
-        self.non_poiss_models_keys = self.non_poiss_models.keys()
+                                   list(self.non_poiss_models.values())])
+        self.n_non_poiss_models = len(list(self.non_poiss_models.keys()))
+        self.non_poiss_models_keys = list(self.non_poiss_models.keys())
 
         # At this stage we have the mean exposure, so if non-Poissonian
         # templates are defined in terms of flux, adjust this now
@@ -187,7 +187,7 @@ class NPTFScan(ConfigMaps):
             if is_flux and is_relative:
                 npt_params = self.non_poiss_models[key]['n_params_total']
                 npt_breaks = int((npt_params - 2) / 2)
-                break_locs = range(npt_breaks + 2, 2 * npt_breaks + 2)
+                break_locs = list(range(npt_breaks + 2, 2 * npt_breaks + 2))
                 highest_break = npt_breaks + 2
 
                 # Check if highest break is fixed and if so adjust
@@ -223,7 +223,7 @@ class NPTFScan(ConfigMaps):
             if is_flux and not is_relative:
                 npt_params = self.non_poiss_models[key]['n_params_total']
                 npt_breaks = int((npt_params - 2) / 2)
-                break_locs = range(npt_breaks + 2, 2 * npt_breaks + 2)
+                break_locs = list(range(npt_breaks + 2, 2 * npt_breaks + 2))
 
                 # Check if there are any fixed breaks and adjust
                 fixed_breaks = 0
@@ -278,7 +278,7 @@ class NPTFScan(ConfigMaps):
                                          self.poiss_models[key]['log_prior']]
                                         for key in self.poiss_model_keys]
 
-        for key in self.non_poiss_models.keys():
+        for key in list(self.non_poiss_models.keys()):
             for j in range(self.non_poiss_models[key]['n_params']):
                 self.model_decompression_key += [
                     [key, self.non_poiss_models[key]['log_prior'][j]]]
@@ -308,20 +308,17 @@ class NPTFScan(ConfigMaps):
         # templates. If there are fixed Poissonian templates add them in too
 
         pt_sum_compressed_float = np.array(
-            [np.sum(list(map(lambda i: a_theta[i][1] *
+            [np.sum(list([a_theta[i][1] *
                              self.templates_dict_nested[a_theta[i][0]]
-                             ['template_masked_compressed_expreg'][region],
-                             range(len(a_theta)))), axis=0)
+                             ['template_masked_compressed_expreg'][region] for i in range(len(a_theta))]), axis=0)
              for region in range(self.nexp)])
 
         pt_sum_compressed_fixed = \
-            np.array([np.sum(list(map(lambda key:
-                                      self.poiss_models_fixed[key][
+            np.array([np.sum(list([self.poiss_models_fixed[key][
                                           'fixed_norm'] *
                                       self.templates_dict_nested[key][
                                           'template_masked_compressed_expreg'][
-                                          region],
-                                      self.poiss_models_fixed.keys())), axis=0)
+                                          region] for key in list(self.poiss_models_fixed.keys())]), axis=0)
                       for region in range(self.nexp)])
 
         # Combine the two if necessary to build the full PT map
@@ -370,9 +367,9 @@ class NPTFScan(ConfigMaps):
 
         # Determine the number of breaks and total parameters for each NPT
         nbreak_ary = [int((val['n_params_total'] - 2) / 2.)
-                      for val in self.non_poiss_models.values()]
+                      for val in list(self.non_poiss_models.values())]
         nparams_ary = [int(val['n_params_total'])
-                       for val in self.non_poiss_models.values()]
+                       for val in list(self.non_poiss_models.values())]
 
         # Determine where each NPT model begins in the full theta_ps array
         offset_indices_ary = [0]
@@ -544,7 +541,7 @@ class NPTFScan(ConfigMaps):
              for key in self.poiss_model_keys])
 
         self.non_poiss_params = self.flatten(np.array(
-            [val['model_tag'] for val in self.non_poiss_models.values()]))
+            [val['model_tag'] for val in list(self.non_poiss_models.values())]))
 
         self.params = np.array(list(self.poiss_params) +
                                list(self.non_poiss_params))
@@ -556,7 +553,7 @@ class NPTFScan(ConfigMaps):
 
         self.non_poiss_list_is_log_prior = np.array(
             self.flatten([val['log_prior']
-                          for val in self.non_poiss_models.values()]))
+                          for val in list(self.non_poiss_models.values())]))
 
         self.medians_not_log = \
             self.convert_log_list(self.medians,
@@ -569,7 +566,7 @@ class NPTFScan(ConfigMaps):
 
         self.norms_non_poiss = OrderedDict()
         index = 0  # Multiple parameters for each NPT, index counts these
-        for i in range(len(self.non_poiss_models.keys())):
+        for i in range(len(list(self.non_poiss_models.keys()))):
             self.norms_non_poiss[list(self.non_poiss_models.keys())[i]] = \
                 [self.medians_not_log[self.n_poiss + index + j]
                  for j in range(

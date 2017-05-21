@@ -11,8 +11,8 @@
 #
 ###############################################################################
 
-from __future__ import print_function
-from __future__ import absolute_import
+
+
 
 import numpy as np
 import numpy.ma as ma
@@ -128,7 +128,7 @@ class ConfigMaps(SetDirs):
             "Exposure map is a different shape to the data"
         assert(len(self.mask_total) == self.npix), \
             "Mask has a different shape to the data"
-        for key in self.templates_dict.keys():
+        for key in list(self.templates_dict.keys()):
             assert(len(self.templates_dict[key]) == self.npix), \
                 key + " has a different shape to the data"
 
@@ -156,7 +156,7 @@ class ConfigMaps(SetDirs):
 
         # Create a nested dictionary of different versions of the templates
         the_dict = self.templates_dict
-        keys = self.templates_dict.keys()
+        keys = list(self.templates_dict.keys())
         self.templates_dict_nested = {
             key: {'template':
                   the_dict[key],
